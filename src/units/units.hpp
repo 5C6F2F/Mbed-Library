@@ -1,0 +1,10 @@
+#pragma once
+#include "position/position.hpp"
+#include "position/angle.hpp"
+#include "position/positionVector.hpp"
+#include "velocity/velocity.hpp"
+#include "velocity/angularVelocity.hpp"
+#include "velocity/velocityVector.hpp"
+#include "acceleration/acceleration.hpp"
+#include "acceleration/angularAcceleration.hpp"
+#include "acceleration/accelerationVector.hpp"
