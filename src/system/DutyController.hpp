@@ -5,7 +5,7 @@
 class DutyController
 {
 public:
-    DutyController(Encoder *encoder, PIDGain pid_gain)
+    DutyController(Encoder &encoder, PIDGain pid_gain)
         : encoder(encoder), pid_controller(pid_gain), target_rps(0.0f), current_rps(0.0f), last_rotation(0.0f), last_duty(0.0f) {}
 
     // 各車輪の速度比率を乱す可能性があるため、デューティ比の上限・下限の制限は上位クラスで行う。
@@ -39,7 +39,7 @@ public:
 
     void updateCurrentRps()
     {
-        float current_rotation = (*encoder).getRotations();
+        float current_rotation = encoder.getRotations();
         float new_current_rps = (current_rotation - last_rotation) * pid_controller.getFrequency();
 
         mutex.lock();
@@ -50,7 +50,7 @@ public:
 
 private:
     Mutex mutex;
-    Encoder *encoder;
+    Encoder &encoder;
     PIDController<float> pid_controller;
     float target_rps;
     float current_rps;

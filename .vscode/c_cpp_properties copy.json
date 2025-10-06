@@ -757,7 +757,7 @@
                 ""
             ],
             "cStandard": "gnu11",
-            "cppStandard": "gnu++14",
+            "cppStandard": "gnu++17",
             "forcedInclude": [
                 "C:/File1/robocon/Rogi-Library/.pio/build/nucleo_f446re/mbed_config.h",
                 ""

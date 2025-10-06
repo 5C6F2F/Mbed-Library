@@ -13,9 +13,9 @@ public:
     virtual void updatePosition() = 0;
 
 protected:
-    array<WheelVectorInv, N> getWheelVectorInv(const array<WheelPositions, N> &wheel_position)
+    static array<WheelVectorInv, N> getWheelVectorInv(const array<WheelPositions, N> &wheel_position)
     {
-        Eigen::MatrixXd wheel_matrix(N, 3); // 車輪のベクトルを格納する行列
+        Eigen::Matrix<float, N, 3> wheel_matrix; // 車輪のベクトルを格納する行列
         for (int i = 0; i < N; i++)
         {
             WheelVector wheel_vector = getWheelVector(wheel_position[i]);
@@ -24,8 +24,9 @@ protected:
             wheel_matrix(i, 2) = wheel_vector.theta;
         }
 
-        Eigen::MatrixXd wheel_matrix_inv(3, N); // 逆行列 (N>=4のときMoore-Penroseの疑似逆行列)
-        if (N == 3)
+        Eigen::Matrix<float, 3, N> wheel_matrix_inv; // 逆行列 (N>=4のときMoore-Penroseの疑似逆行列)
+        // コンパイル時にif文を処理してEigenのstatic_assertを回避。c++17以降。
+        if constexpr (N == 3)
         {
             wheel_matrix_inv = wheel_matrix.inverse();
         }

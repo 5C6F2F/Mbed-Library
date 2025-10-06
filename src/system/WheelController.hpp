@@ -9,7 +9,7 @@ template <int N>
 class WheelController
 {
 public:
-    WheelController(array<MotorWheel, N> &motor_wheels, PIDGain pid_gain, MeterPerSecond max_speed, float max_duty = 1.0f)
+    WheelController(array<MotorWheel, N> &motor_wheels, PIDGain &pid_gain, MeterPerSecond max_speed, float max_duty = 1.0f)
         : pid_controller(pid_gain), max_speed(max_speed), max_duty(max_duty)
     {
         for (int i = 0; i < N; i++)
@@ -20,7 +20,7 @@ public:
 
             wheel_vectors[i] = getWheelVector(measuring_wheel.positions);
             dc_motors[i] = &dc_motor;
-            duty_controllers[i] = std::make_unique<DutyController>(&measuring_wheel.encoder, pid_gain);
+            duty_controllers[i] = std::make_unique<DutyController>(measuring_wheel.encoder, pid_gain);
 
             // clang-format off
             tickers[i].attach([this, i] { this->updateCurrentRpsFlagSet(i); }, 1s / pid_gain.frequency);

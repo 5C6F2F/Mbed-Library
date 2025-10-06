@@ -25,7 +25,7 @@ int main()
     DCMotor rear_left_motor(PwmOutPins::OMNI_MOTOR2_PWM, DigitalOutPins::OMNI_MOTOR2_DIR);
     DCMotor rear_right_motor(PwmOutPins::OMNI_MOTOR3_PWM, DigitalOutPins::OMNI_MOTOR3_DIR);
 
-    PIDGain motor_pid_gain = PIDGain({0.7f, 0.0f, 0.0f, frequency});
+    PIDGain motor_pid_gain = {0.7f, 0.0f, 0.0f, frequency};
 
     Wheels wheels = {
         .front = {
@@ -62,7 +62,7 @@ int main()
         },
     };
 
-    PIDGain position_pid_gain = PIDGain({0.1f, 0.0f, 0.0f, frequency});
+    PIDGain position_pid_gain = {0.1f, 0.0f, 0.0f, frequency};
     constexpr MeterPerSecond max_speed = 10_m_s;
 
     array<MeasuringWheel, 5> measuring_wheels = {
@@ -78,14 +78,15 @@ int main()
         wheels.rear_right,
     };
 
-    // メモリのスタック領域に入り切らないのでunique_ptrを使ってヒープ領域に配置。
-    auto odometry = std::make_unique<WheelOdometry<5>>(measuring_wheels);
+    WheelOdometry<5> odometry(measuring_wheels);
 
     // Imu imu(PinsForSensor::IMU_SDA, PinsForSensor::IMU_SCL);
     // imu.init();
     // auto odometry = std::make_unique<ImuWheelOdometry<5>>(measuring_wheels, imu);
 
-    auto position_controller = std::make_unique<PositionController<5, 3>>(std::move(odometry), motor_wheels, position_pid_gain, max_speed);
+    // メモリのスタック領域に入り切らないのでunique_ptrを使ってヒープ領域に配置。
+    auto position_controller = std::make_unique<PositionController<5, 3>>(odometry, motor_wheels, position_pid_gain, max_speed);
+
     position_controller->setTargetPosition({10_m, 0_m, 0_deg});
 
     while (true)
