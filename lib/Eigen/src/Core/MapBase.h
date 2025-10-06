@@ -24,9 +24,11 @@ namespace Eigen {
   *
   * \sa class Map, class Block
   */
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
   : public internal::dense_xpr_base<Derived>::type
 {
+  #pragma GCC diagnostic pop
   public:
 
     typedef typename internal::dense_xpr_base<Derived>::type Base;
@@ -169,9 +171,11 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     const internal::variable_if_dynamic<Index, ColsAtCompileTime> m_cols;
 };
 
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 template<typename Derived> class MapBase<Derived, WriteAccessors>
   : public MapBase<Derived, ReadOnlyAccessors>
 {
+  #pragma GCC diagnostic pop
     typedef MapBase<Derived, ReadOnlyAccessors> ReadOnlyMapBase;
   public:
 

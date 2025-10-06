@@ -45,10 +45,12 @@ struct traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : traits<PlainObjectT
 };
 }
 
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 template<typename NullaryOp, typename PlainObjectType>
 class CwiseNullaryOp : internal::no_assignment_operator,
-  public internal::dense_xpr_base< CwiseNullaryOp<NullaryOp, PlainObjectType> >::type
+public internal::dense_xpr_base< CwiseNullaryOp<NullaryOp, PlainObjectType> >::type
 {
+  #pragma GCC diagnostic pop
   public:
 
     typedef typename internal::dense_xpr_base<CwiseNullaryOp>::type Base;

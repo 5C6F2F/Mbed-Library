@@ -100,9 +100,11 @@ template<typename XprType, int BlockRows=Dynamic, int BlockCols=Dynamic, bool In
 
 template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, typename StorageKind> class BlockImpl;
 
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> class Block
   : public BlockImpl<XprType, BlockRows, BlockCols, InnerPanel, typename internal::traits<XprType>::StorageKind>
 {
+  #pragma GCC diagnostic pop
     typedef BlockImpl<XprType, BlockRows, BlockCols, InnerPanel, typename internal::traits<XprType>::StorageKind> Impl;
   public:
     //typedef typename Impl::Base Base;
@@ -145,10 +147,12 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> class 
          
 // The generic default implementation for dense block simplu forward to the internal::BlockImpl_dense
 // that must be specialized for direct and non-direct access...
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
 class BlockImpl<XprType, BlockRows, BlockCols, InnerPanel, Dense>
   : public internal::BlockImpl_dense<XprType, BlockRows, BlockCols, InnerPanel>
 {
+  #pragma GCC diagnostic pop
     typedef internal::BlockImpl_dense<XprType, BlockRows, BlockCols, InnerPanel> Impl;
     typedef typename XprType::Index Index;
   public:
@@ -310,10 +314,12 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
 };
 
 /** \internal Internal implementation of dense Blocks in the direct access case.*/
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
 class BlockImpl_dense<XprType,BlockRows,BlockCols, InnerPanel,true>
   : public MapBase<Block<XprType, BlockRows, BlockCols, InnerPanel> >
 {
+  #pragma GCC diagnostic pop
     typedef Block<XprType, BlockRows, BlockCols, InnerPanel> BlockType;
   public:
 

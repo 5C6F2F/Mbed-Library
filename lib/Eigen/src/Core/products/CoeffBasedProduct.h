@@ -145,10 +145,12 @@ class CoeffBasedProduct
       : Base(), m_lhs(other.m_lhs), m_rhs(other.m_rhs)
     {}
 
+    #pragma GCC diagnostic ignored "-Wdeprecated-copy"
     template<typename Lhs, typename Rhs>
     inline CoeffBasedProduct(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
+      #pragma GCC diagnostic pop
       // we don't allow taking products of matrices of different real types, as that wouldn't be vectorizable.
       // We still allow to mix T and complex<T>.
       EIGEN_STATIC_ASSERT((internal::scalar_product_traits<typename Lhs::RealScalar, typename Rhs::RealScalar>::Defined),

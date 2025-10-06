@@ -101,9 +101,11 @@ private:
 };
 }
 
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 template<typename PlainObjectType, int MapOptions, typename StrideType> class Map
   : public MapBase<Map<PlainObjectType, MapOptions, StrideType> >
 {
+  #pragma GCC diagnostic pop
   public:
 
     typedef MapBase<Map> Base;
