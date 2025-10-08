@@ -8,23 +8,20 @@ class Encoder
 {
 public:
     Encoder(PinName interrupt_in_pin, PinName digital_in_pin, int resolution = 2048, bool is_clockwise = true, bool is_dual = false)
-        : digital_in(digital_in_pin), interrupt_in(interrupt_in_pin), count(0)
+        : digital_in(digital_in_pin), interrupt_in(interrupt_in_pin), count(0), is_clockwise(is_clockwise)
     {
         converted_resolution = resolution * (is_dual ? 2 : 1);
 
-        //  is_clockwise: A相の立ち上がり時にB相がON = 1 -> count++
-        // !is_clockwise: A相の立ち上がり時にB相がOFF = 0 -> count--
-        const int rise_sgn = is_clockwise ? 1 : 0;
-        const int fall_sgn = is_clockwise ? 0 : 1;
+        thread.start(callback(this, &Encoder::thread_handler));
 
         // clang-format off
-        interrupt_in.rise([this, rise_sgn]() { updateCount(rise_sgn); });
+        interrupt_in.rise([this]() { event_flags.set(ENCODER_RISE_FLAG); });
         // clang-format on
 
         if (is_dual)
         {
             // clang-format off
-            interrupt_in.fall([this, fall_sgn]() { updateCount(fall_sgn); });
+            interrupt_in.fall([this]() { event_flags.set(ENCODER_FALL_FLAG); });
             // clang-format on
         }
     }
@@ -32,6 +29,9 @@ public:
     // カウント数を取得
     int getCount()
     {
+        mutex.lock();
+        int count = this->count;
+        mutex.unlock();
         return count;
     }
 
@@ -44,7 +44,7 @@ public:
     // 回転数を取得
     float getRotations()
     {
-        return (float)count / converted_resolution;
+        return (float)getCount() / converted_resolution;
     }
 
     // カウント数を回転数に変換
@@ -67,25 +67,58 @@ public:
 
     void reset()
     {
+        mutex.lock();
         count = 0;
+        mutex.unlock();
     }
 
     // カウント数を加算 (シミュレーション用)
     void addCount(int count)
     {
+        mutex.lock();
         this->count += count;
+        mutex.unlock();
     }
 
 private:
     DigitalIn digital_in;
     InterruptIn interrupt_in;
-
     // 1回転あたりのカウント数
     int converted_resolution;
+    bool is_clockwise;
+    Mutex mutex;
+    EventFlags event_flags;
+    Thread thread;
     int count;
+
+    static const uint32_t ENCODER_RISE_FLAG = (1 << 0);
+    static const uint32_t ENCODER_FALL_FLAG = (1 << 1);
+
+    void thread_handler()
+    {
+        // is_clockwise:  A相の立ち上がり時にB相がON  = 1 -> count++
+        // !is_clockwise: A相の立ち上がり時にB相がOFF = 0 -> count--
+        const int rise_sgn = is_clockwise ? 1 : 0;
+        const int fall_sgn = is_clockwise ? 0 : 1;
+
+        while (true)
+        {
+            uint32_t flags = event_flags.wait_any(ENCODER_RISE_FLAG | ENCODER_FALL_FLAG);
+
+            if ((flags & ENCODER_RISE_FLAG) != 0)
+            {
+                updateCount(rise_sgn);
+            }
+            if ((flags & ENCODER_FALL_FLAG) != 0)
+            {
+                updateCount(fall_sgn);
+            }
+        }
+    }
 
     void updateCount(int sgn)
     {
+        mutex.lock();
         if (digital_in.read() == sgn)
         {
             count++;
@@ -94,5 +127,6 @@ private:
         {
             count--;
         }
+        mutex.unlock();
     }
 };
