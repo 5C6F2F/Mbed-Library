@@ -8,7 +8,7 @@ class Encoder
 {
 public:
     Encoder(PinName interrupt_in_pin, PinName digital_in_pin, int resolution = 2048, bool is_clockwise = true, bool is_dual = false)
-        : digital_in(digital_in_pin), interrupt_in(interrupt_in_pin), count(0), is_clockwise(is_clockwise)
+        : digital_in(digital_in_pin), interrupt_in(interrupt_in_pin), is_clockwise(is_clockwise), count(0)
     {
         converted_resolution = resolution * (is_dual ? 2 : 1);
 
