@@ -91,6 +91,8 @@ int main()
 
     while (true)
     {
+        position_controller->updateMotors();
+
         Position pos = position_controller->getCurrentPosition();
 
         printf("position: %f, %f, %f\n", pos.x.value, pos.y.value, pos.theta.value);

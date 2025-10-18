@@ -21,16 +21,7 @@ public:
             wheel_vectors[i] = getWheelVector(measuring_wheel.positions);
             dc_motors[i] = &dc_motor;
             duty_controllers[i] = std::make_unique<DutyController>(measuring_wheel.encoder, pid_gain);
-
-            // clang-format off
-            tickers[i].attach([this, i] { this->updateCurrentRpsFlagSet(i); }, 1s / pid_gain.frequency);
-            // clang-format on
-
-            // シグナルは0以外でなければいけないので+1する。
-            update_current_rps_signals[i] = i + 1;
         }
-
-        thread.start(callback(this, &WheelController::updateCurrentRps));
     }
 
     void updateMotors(Position error)
@@ -39,6 +30,15 @@ public:
         for (int i = 0; i < N; i++)
         {
             dc_motors[i]->setDuty(duty[i]);
+        }
+    }
+
+    // 一定周期で実行
+    void updateCurrentRps()
+    {
+        for (int i = 0; i < N; i++)
+        {
+            this->duty_controllers[i]->updateCurrentRps();
         }
     }
 
@@ -51,10 +51,6 @@ private:
     // ここでコピーコンストラクタを実装してしまうと他の場所でもDutyControllerをコピーできるようになってしまう。
     // Encoderのポインターが別の場所でコピーされて面倒くさいことになるのも嫌なのでunique_ptrを使って実装を回避した。
     array<std::unique_ptr<DutyController>, N> duty_controllers;
-    array<Ticker, N> tickers;
-    Thread thread;
-    EventFlags update_current_rps_flags;
-    array<uint32_t, N> update_current_rps_signals;
     MeterPerSecond max_speed;
     float max_duty;
 
@@ -124,23 +120,5 @@ private:
     inline float getWheelSpeedRelative(const Velocity velocity, const WheelVector wheel_vector)
     {
         return wheel_vector.x * velocity.x.value + wheel_vector.y * velocity.y.value + wheel_vector.theta * velocity.theta.value;
-    }
-
-    void updateCurrentRpsFlagSet(int i)
-    {
-        update_current_rps_flags.set(update_current_rps_signals[i]);
-    }
-
-    void updateCurrentRps()
-    {
-        while (true)
-        {
-            for (int i = 0; i < N; i++)
-            {
-                update_current_rps_flags.wait_any(update_current_rps_signals[i]);
-
-                this->duty_controllers[i]->updateCurrentRps();
-            }
-        }
     }
 };

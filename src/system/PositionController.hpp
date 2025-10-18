@@ -12,8 +12,6 @@ public:
     {
         odometry_ticker.attach(callback(this, &PositionController::updatePositionFlagSet), odometry_update_interval);
         odometry_thread.start(callback(this, &PositionController::updatePosition));
-        wheel_controller_ticker.attach(callback(this, &PositionController::updateMotorsFlagSet), 1s / pid_gain.frequency);
-        wheel_controller_thread.start(callback(this, &PositionController::updateMotors));
     };
 
     void setCurrentPosition(Position current_position)
@@ -33,17 +31,19 @@ public:
         return odometry.getCurrentPosition();
     }
 
+    // 一定周期で実行
+    void updateMotors()
+    {
+        wheel_controller.updateCurrentRps();
+        wheel_controller.updateMotors(getError());
+    }
+
 private:
     Ticker odometry_ticker;
     Thread odometry_thread;
     EventFlags odometry_flag;
     static constexpr uint32_t ODOMETRY_UPDATE_SIGNAL = 1;
     IOdometry<N> &odometry;
-
-    Ticker wheel_controller_ticker;
-    Thread wheel_controller_thread;
-    EventFlags wheel_controller_flag;
-    static constexpr uint32_t WHEEL_CONTROLLER_UPDATE_SIGNAL = 1;
     WheelController<M> wheel_controller;
 
     Mutex mutex;
@@ -72,21 +72,6 @@ private:
             odometry_flag.wait_any(ODOMETRY_UPDATE_SIGNAL);
 
             odometry.updatePosition();
-        }
-    }
-
-    void updateMotorsFlagSet()
-    {
-        wheel_controller_flag.set(WHEEL_CONTROLLER_UPDATE_SIGNAL);
-    }
-
-    void updateMotors()
-    {
-        while (true)
-        {
-            wheel_controller_flag.wait_any(WHEEL_CONTROLLER_UPDATE_SIGNAL);
-
-            wheel_controller.updateMotors(getError());
         }
     }
 };
